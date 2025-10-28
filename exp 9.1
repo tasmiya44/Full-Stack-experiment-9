@@ -1,0 +1,81 @@
+const express = require("express");
+const cors = require("cors");
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// API route
+app.get("/api/message", (req, res) => {
+  res.json({ message: "Hello from Node.js backend running in Docker!" });
+});
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build"
+  }
+}
+import React, { useEffect, useState } from "react";
+
+function App() {
+  const [message, setMessage] = useState("Loading...");
+
+  useEffect(() => {
+    fetch("/api/message")
+      .then((res) => res.json())
+      .then((data) => setMessage(data.message))
+      .catch(() => setMessage("Backend not reachable"));
+  }, []);
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 text-center">
+      <h1 className="text-3xl font-bold text-blue-700 mb-4">
+        React + Node + Docker Demo
+      </h1>
+      <p className="text-lg text-gray-800">{message}</p>
+    </div>
+  );
+}
+
+export default App;
+server {
+  listen 80;
+
+  location / {
+    root /usr/share/nginx/html;
+    index index.html;
+    try_files $uri /index.html;
+  }
+
+  # Proxy API requests to backend
+  location /api/ {
+    proxy_pass http://backend:5000;
+  }
+}
+
+
+services:
+  backend:
+    build: ./backend
+    container_name: node-backend
+    ports:
+      - "5000:5000"
+
+  frontend:
+    build: ./frontend
+    container_name: react-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
