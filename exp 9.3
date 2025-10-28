@@ -1,0 +1,75 @@
+// Simple Express API - backend/server.js
+const express = require('express');
+const cors = require('cors');
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// Example protected route placeholder (token auth can be added)
+app.get('/api/message', (req, res) => {
+  res.json({ message: 'Hello from Backend instance ' + (process.env.INSTANCE_ID || '') });
+});
+
+app.get('/api/time', (req, res) => {
+  res.json({ serverTime: new Date().toISOString() });
+});
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Backend listening on ${PORT}`));
+module.exports = {
+  apps: [
+    {
+      name: "backend",
+      script: "./server.js",
+      env: {
+        NODE_ENV: "production",
+      },
+    },
+  ],
+};
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1"
+  }
+}
+import React, { useEffect, useState } from "react";
+
+export default function App() {
+  const [msg, setMsg] = useState("Loading...");
+
+  useEffect(() => {
+    fetch("/api/message")
+      .then((r) => r.json())
+      .then((d) => setMsg(d.message))
+      .catch((e) => setMsg("Could not reach backend: " + e));
+  }, []);
+
+  return (
+    <div style={{ textAlign: "center", marginTop: 120, fontFamily: "sans-serif" }}>
+      <h1>Fullstack EC2 + ALB Demo</h1>
+      <p>{msg}</p>
+      <p>Time from server: <em><ServerTime /></em></p>
+    </div>
+  );
+}
+
+function ServerTime() {
+  const [t, setT] = useState("-");
+  useEffect(() => {
+    fetch("/api/time")
+      .then(r => r.json())
+      .then(d => setT(d.serverTime))
+      .catch(() => setT("unavailable"));
+  }, []);
+  return t;
+}
